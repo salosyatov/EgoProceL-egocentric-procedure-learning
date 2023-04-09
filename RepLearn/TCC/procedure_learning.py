@@ -25,6 +25,8 @@ logger = logging.get_logger(__name__)
 
 
 def procedure_learning(cfg):
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     # Fixing the seed to get the same results every time
     os.environ['PYTHONHASHSEED'] = str(cfg.TCC.RANDOM_STATE)
     np.random.seed(cfg.TCC.RANDOM_STATE)
@@ -57,7 +59,7 @@ def procedure_learning(cfg):
         for key, value in state_dict.items():
             new_state_dict[key.replace('module.', '')] = value
         model.load_state_dict(new_state_dict)
-    model = model.to('cuda:1')
+    model = model.to(device)
     model.eval()
 
     # Generating features

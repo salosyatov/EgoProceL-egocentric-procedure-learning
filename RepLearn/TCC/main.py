@@ -86,7 +86,7 @@ def main(cfg):
                 writer=writer,
                 iter_count=iter_i
             )
-        loss = loss.to('cuda')
+        loss = loss.to(device)
         scaler.scale(loss / gradient_accumulations).backward()
         if iter_i % gradient_accumulations == 0:
             scaler.step(optimizer)

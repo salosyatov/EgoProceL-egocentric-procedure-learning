@@ -6,10 +6,12 @@ Link to the webpage: http://kitchen.cs.cmu.edu/
 import os
 import time
 import argparse
-import numpy as np
+import shutil
 
+import numpy as np
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
+import wget
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -19,23 +21,21 @@ parser.add_argument(
 )
 parser.add_argument(
     '--dir',
-    default='/Volumes/Storage/Egocentric/Datasets/CMU_Kitchens/',
+    default=os.path.join(os.getcwd(), 'videos'),
     help='Path to the directory where data is to be downloaded'
 )
 args = parser.parse_args()
 
 
 def unzip_del(zip_file):
-    unzip_command = 'unzip {} -d {}'
-    delete_command = 'rm {}'
-    dest_dir = zip_file.split('.')[0]
+    dest_dir = os.path.splitext(zip_file)[0]
     if not os.path.isdir(dest_dir):
         print('[INFO] Creating {}...'.format(dest_dir))
         os.mkdir(dest_dir)
         print('[INFO] Unzipping {}'.format(zip_file))
-        os.system(unzip_command.format(zip_file, dest_dir))
+        shutil.unpack_archive(zip_file, dest_dir)
         print('[INFO] Deleting {}...'.format(zip_file))
-        os.system(delete_command.format(zip_file))
+        os.remove(zip_file)
     else:
         print('[INFO] Files for {} already extracted...'.format(zip_file))
     return None
@@ -51,7 +51,6 @@ for link in soup.findAll('a'):
     links.append(link.get('href'))
 
 download_link = 'http://kitchen.cs.cmu.edu/{}'
-download_command = 'wget -P {} {}'
 
 for link in links:
     if link is not None:
@@ -62,19 +61,16 @@ for link in links:
                 pass
             else:
                 os.mkdir(activity_dir)
-            file_path = os.path.join(activity_dir, link.split('/')[-1]).split(
-                '.'
-            )[0]
-            if os.path.isdir(file_path):
+
+            file_path = os.path.join(activity_dir, link.split('/')[-1])
+            dir_path = os.path.splitext(file_path)[0]
+
+            if os.path.isdir(dir_path):
                 print('[INFO] {} exists...'.format(link))
                 pass
             else:
                 print('[INFO] Downloading {}...'.format(link))
                 download_link_ = download_link.format(link)
-                download_command_ = download_command.format(
-                    activity_dir,
-                    download_link_
-                )
-                os.system(download_command_)
+                wget.download(download_link_, activity_dir)
                 unzip_del(file_path)
                 time.sleep(np.random.randint(2, 15))
